@@ -10,9 +10,9 @@ The code does the following:
 6. Creates a public route in the public route table created above with the destination CIDR block 0.0.0.0/0 and the internet gateway created above as the target
 
 ## Prerequisites
-Install terraform on your local system
-Setup an AWS account
-Install AWS CLI and setup a profile in your local system
+1. Install terraform on your local system
+2. Setup an AWS account
+3. Install AWS CLI and setup a profile in your local system
 
 ## How to create resources?
 Run the following commands:
