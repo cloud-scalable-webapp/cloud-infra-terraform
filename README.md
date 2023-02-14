@@ -23,6 +23,7 @@ Run the following commands:
 Once "terraform apply" is run, the aforementioned resources would be created using the default variables.
 
 In order to create the above network stack using self-defined variables, you may customize the command mentioned below and run it:
+
 terraform apply -var='profile=demo' -var='region=us-east-1' -var='vpc_name=csye' -var='vpccidr=10.0.0.0/16' -var='public_subnets_cidr=["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]' -var='private_subnets_cidr=["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]'
 
 ## How to destroy resources?
