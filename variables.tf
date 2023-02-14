@@ -1,23 +1,23 @@
 variable "profile" {
-  type = string
+  type        = string
   default     = "demo"
   description = "Account in which the resources will be deployed"
 }
 
 variable "region" {
-  type = string
+  type        = string
   default     = "us-east-1"
   description = "Region where the resources will be deployed"
 }
 
 variable "vpc_name" {
-  type = string
+  type        = string
   default     = "csye6225"
   description = "Name of the VPC"
 }
 
 variable "vpccidr" {
-  type = string
+  type        = string
   default     = "10.0.0.0/16"
   description = "VPC CIDR Block"
   validation {
@@ -27,13 +27,13 @@ variable "vpccidr" {
 }
 
 variable "public_subnets_cidr" {
-  type = list(string)
+  type        = list(string)
   default     = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
   description = "Public subnets for VPC"
 }
 
 variable "private_subnets_cidr" {
-  type = list(string)
+  type        = list(string)
   default     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
   description = "Private subnets for VPC"
 }
