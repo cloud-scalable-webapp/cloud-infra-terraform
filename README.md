@@ -34,7 +34,7 @@ If you have created resources using custom variables, make sure to pass the vari
 
 Note: If you're using custom variables, please ensure that vpccidr, public_subnets_cidr and private_subnets_cidr values are from the same subnet.
 
-## How to create multiple infrastructures?
+## How to create multiple infrastructures using terraform?
 You can use terraform workspaces, commands are:
 1. terraform workspace new workspace_name - to create a new workspace
 2. terraform workspace select workspace_name - to switch to a workspace
