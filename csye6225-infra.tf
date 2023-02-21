@@ -70,3 +70,37 @@ resource "aws_route_table_association" "private_subnets" {
   count          = length(var.private_subnets_cidr)
   subnet_id      = element(aws_subnet.private_subnets[*].id, count.index)
 }
+
+resource "aws_security_group" "application" {
+  name        = "application"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+}
+resource "aws_security_group_rule" "application" {
+  type              = "ingress"
+  count             = length(var.application_ingress_rules)
+  from_port         = var.application_ingress_rules[count.index].from_port
+  to_port           = var.application_ingress_rules[count.index].to_port
+  protocol          = var.application_ingress_rules[count.index].protocol
+  cidr_blocks       = [var.application_ingress_rules[count.index].cidr_block]
+  description       = var.application_ingress_rules[count.index].description
+  security_group_id = aws_security_group.application.id
+}
+
+resource "aws_instance" "application" {
+  ami                         = var.ami_id
+  instance_type               = var.ec2_instance_type
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.application.id]
+  subnet_id                   = aws_subnet.public_subnets[0].id
+  root_block_device {
+    delete_on_termination = true
+    volume_size           = var.ebs_volume_size
+    volume_type           = var.ebs_volume_type
+  }
+
+  tags = {
+    Name = var.ec2_instance_name
+  }
+}
