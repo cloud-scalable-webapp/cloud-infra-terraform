@@ -10,11 +10,11 @@ The code does the following:
 6. Creates a public route in the public route table created above with the destination CIDR block 0.0.0.0/0 and the internet gateway created above as the target
 7. Creates an application security group for EC2 with name "application" and ingress rules to allow ingress traffic on port 22, 443, 80 and 8000 globally
 8. Creates an EC2 instance in the newly created VPC above with the following specifications:
-Security Group: application
-Instance Type: t2.micro
-Protect against accidental termination: No
-Root Volume Size: 50 GB
-Root Volume Type: General Purpose SSD (GP2)
+* Security Group: application
+* Instance Type: t2.micro
+* Protect against accidental termination: No
+* Root Volume Size: 50 GB
+* Root Volume Type: General Purpose SSD (GP2)
 
 ## Prerequisites
 1. Install terraform on your local system
