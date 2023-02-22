@@ -33,3 +33,15 @@ output "public_subnets_route_table" {
 output "private_subnets_route_table" {
   value = aws_route_table.private_subnets_route_table.id
 }
+
+output "ec2_instance_name" {
+  value = var.ec2_instance_name
+}
+
+output "ec2_public_ip" {
+  value = zipmap(aws_instance.application[*].id, aws_instance.application[*].public_ip)
+}
+
+output "ec2_ami_id" {
+  value = var.ami_id
+}

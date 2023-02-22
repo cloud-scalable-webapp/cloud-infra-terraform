@@ -37,3 +37,93 @@ variable "private_subnets_cidr" {
   default     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
   description = "Private subnets for VPC"
 }
+
+variable "ami_id" {
+  type        = string
+  description = "AWS AMI ID"
+}
+
+variable "ec2_instance_type" {
+  type        = string
+  default     = "t2.micro"
+  description = "EC2 Instance Type"
+}
+
+variable "ec2_instance_name" {
+  type        = string
+  default     = "csye6225"
+  description = "EC2 Instance Name"
+}
+
+variable "ebs_volume_size" {
+  type        = string
+  default     = 50
+  description = "EBS Volume Size"
+}
+
+variable "ebs_volume_type" {
+  type        = string
+  default     = "gp2"
+  description = "EBS Volume Type"
+}
+
+variable "application_ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_block  = string
+    description = string
+  }))
+
+  default = [
+    {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
+      description = "SSH"
+    },
+    {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
+      description = "HTTP"
+    },
+    {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
+      description = "HTTPS"
+    },
+    {
+      from_port   = 8000
+      to_port     = 8000
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
+      description = "HTTPS"
+    },
+  ]
+}
+
+variable "delete_on_termination" {
+  type    = string
+  default = true
+}
+
+variable "associate_public_ip_address" {
+  type    = string
+  default = true
+}
+
+variable "number_of_instances" {
+  type    = number
+  default = 1
+}
+
+variable "aws_security_group_name" {
+  type    = string
+  default = "application"
+}
