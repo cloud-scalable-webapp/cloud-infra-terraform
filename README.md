@@ -1,6 +1,6 @@
 # Infrastructure
 
-## AWS Networking Setup
+## AWS Infrastructure Setup
 The code does the following:
 1. Creates a new Virtual Private Cloud (VPC)
 2. Creates 3 subnets in the new VPC. The script creates 3 public subnets and 3 private subnets, each in a different availability zone in the same region as the VPC
