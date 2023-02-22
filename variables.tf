@@ -107,3 +107,23 @@ variable "application_ingress_rules" {
     },
   ]
 }
+
+variable "delete_on_termination" {
+  type    = string
+  default = true
+}
+
+variable "associate_public_ip_address" {
+  type    = string
+  default = true
+}
+
+variable "number_of_instances" {
+  type    = number
+  default = 1
+}
+
+variable "aws_security_group_name" {
+  type    = string
+  default = "application"
+}
