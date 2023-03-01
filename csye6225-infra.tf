@@ -182,7 +182,7 @@ resource "aws_db_instance" "mysql" {
   vpc_security_group_ids = [aws_security_group.database.id]
   allocated_storage      = var.db_allocated_storage
   max_allocated_storage  = var.max_db_allocated_storage
-  skip_final_snapshot    = "true"
+  skip_final_snapshot    = var.true
 
   tags = {
     Name = var.aws_db_instance_name
@@ -196,7 +196,7 @@ resource "random_string" "bucket_string" {
 }
 
 resource "random_string" "database_password" {
-  length = var.database_string_length
+  length  = var.database_string_length
   special = var.false
 }
 
