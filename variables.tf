@@ -108,6 +108,26 @@ variable "application_ingress_rules" {
   ]
 }
 
+variable "application_egress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_block  = string
+    description = string
+  }))
+
+  default = [
+    {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_block  = "0.0.0.0/0"
+      description = "Allow Outbound Traffic"
+    },
+  ]
+}
+
 variable "delete_on_termination" {
   type    = string
   default = true
@@ -123,7 +143,190 @@ variable "number_of_instances" {
   default = 1
 }
 
+variable "number_of_db_instances" {
+  type    = number
+  default = 1
+}
+
 variable "aws_security_group_name" {
   type    = string
   default = "application"
+}
+
+variable "aws_security_group_name_database" {
+  type    = string
+  default = "database"
+}
+
+variable "database_ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    description = string
+  }))
+
+  default = [
+    {
+      from_port   = 3306
+      to_port     = 3306
+      protocol    = "tcp"
+      description = "MySQL"
+    },
+  ]
+}
+
+variable "aws_db_parameter_group_name" {
+  type    = string
+  default = "csye6225"
+}
+
+variable "aws_db_parameter_family" {
+  type    = string
+  default = "mysql8.0"
+}
+
+variable "aws_db_parameter_description" {
+  type    = string
+  default = "Parameter Group for CSYE 6225"
+}
+
+variable "aws_db_engine" {
+  type    = string
+  default = "mysql"
+}
+
+variable "aws_db_engine_version" {
+  type    = string
+  default = "8.0"
+}
+
+variable "aws_db_instance_class" {
+  type    = string
+  default = "db.t3.micro"
+}
+
+variable "aws_db_multi_az" {
+  type    = bool
+  default = "false"
+}
+
+variable "aws_db_username" {
+  type    = string
+  default = "csye6225"
+}
+
+variable "aws_db_password" {
+  type    = string
+  default = "dbTz2TtYQHQ5QSMIgrngzw"
+}
+
+variable "aws_db_name" {
+  type    = string
+  default = "csye6225"
+}
+
+variable "aws_db_publicly_accessible" {
+  type    = bool
+  default = "false"
+}
+
+variable "aws_db_subnet_group_name" {
+  type    = string
+  default = "csye6225"
+}
+
+variable "aws_db_instance_name" {
+  type    = string
+  default = "CSYE 6225 DB"
+}
+
+variable "aws_db_identifier" {
+  type    = string
+  default = "csye6225"
+}
+
+variable "db_allocated_storage" {
+  type    = number
+  default = 10
+}
+
+variable "max_db_allocated_storage" {
+  type    = number
+  default = 50
+}
+
+variable "node_port" {
+  type    = number
+  default = 8000
+}
+
+variable "db_port" {
+  type    = number
+  default = 3306
+}
+
+variable "bucket_access" {
+  type    = string
+  default = "private"
+}
+
+variable "object_force_remove" {
+  type    = bool
+  default = "true"
+}
+
+variable "s3_encryption" {
+  type    = string
+  default = "AES256"
+}
+
+variable "s3_transition_days" {
+  type    = number
+  default = 30
+}
+
+variable "s3_transition_class" {
+  type    = string
+  default = "STANDARD_IA"
+}
+
+variable "bucket_string_length" {
+  type    = string
+  default = 10
+}
+
+variable "database_string_length" {
+  type    = string
+  default = 16
+}
+
+variable "true" {
+  type    = bool
+  default = "true"
+}
+
+variable "false" {
+  type    = bool
+  default = "false"
+}
+
+variable "s3_transition_id" {
+  type    = string
+  default = "transition_objects"
+}
+
+variable "s3_lifecycle_config_enabled" {
+  type    = string
+  default = "Enabled"
+}
+
+variable "s3_iam_policy_name" {
+  type    = string
+  default = "WebAppS3"
+}
+
+variable "aws_iam_role_name" {
+  type    = string
+  default = "EC2-CSYE6225"
 }

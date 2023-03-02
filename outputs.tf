@@ -45,3 +45,11 @@ output "ec2_public_ip" {
 output "ec2_ami_id" {
   value = var.ami_id
 }
+
+output "s3_bucket_name" {
+  value = aws_s3_bucket.csyebucket.bucket
+}
+
+output "rds_instance_id" {
+  value = aws_db_instance.mysql.id
+}
