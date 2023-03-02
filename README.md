@@ -15,6 +15,23 @@ The code does the following:
 * Protect against accidental termination: No
 * Root Volume Size: 50 GB
 * Root Volume Type: General Purpose SSD (GP2)
+* User data: Passes S3 bucket name, database name, database host, database username, database password, database port and nodejs port
+9. Creates an database security group for RDS with name "database" and ingress rules to allow ingress traffic on port 3306 only from the EC2 instance
+10. Creates a private S3 bucket with random name, depending on the environment. Enables SSE-S3 encryption as default and creates a lifecycle policy to transition objects from STANDARD class to STANDARD_IA class after 30 days
+11. Creates RDS paramter group named "csye6225" for MySQL 8
+12. Creates RDS instance in the newly created VPC above with the following specifications:
+* Database Engine: MySQL
+* DB Instance Class: db.t3.micro
+* Multi-AZ deployment: No
+* DB instance identifier: csye6225
+* Master username: csye6225
+* Master password: Randomly generated password
+* Subnet group: Private subnet for RDS instances
+* Public accessibility: No
+* Database name: csye6225
+* Security group: database
+13. Creates an IAM policy named "WebAppS3" with appropriate permissions to allow EC2 instance to access the S3 bucket
+14. Creates an IAM role named "EC2-CSYE6225" and attaches the IAM policy "WebAppS3" to it. This role will be attached to the instance.
 
 ## Prerequisites
 1. Install terraform on your local system
@@ -31,7 +48,8 @@ Once "terraform apply" is run, the aforementioned resources would be created usi
 
 In order to create the above network stack using self-defined variables, you may customize the command mentioned below and run it:
 
-terraform apply -var='profile=demo' -var='region=us-east-1' -var='vpc_name=csye' -var='vpccidr=10.0.0.0/16' -var='public_subnets_cidr=["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]' -var='private_subnets_cidr=["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]' -var='ami_id=ami_id_here' -var='ec2_instance_type=t2.micro' -var='ec2_instance_name=csye' -var='ebs_volume_size=100' -var='ebs_volume_type=gp2' -var='associate_public_ip_address=true' -var='number_of_instances=1' -var='aws_security_group_name=application'
+terraform apply -var='profile=demo' 
+You can replace profile=demo in the above example with variable_name=value
 
 ## How to destroy resources?
 Run the following command:
