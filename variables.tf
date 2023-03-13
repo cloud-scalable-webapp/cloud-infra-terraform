@@ -330,3 +330,23 @@ variable "aws_iam_role_name" {
   type    = string
   default = "EC2-CSYE6225"
 }
+
+variable "zone_id" {
+  type    = string
+  default = "Z0124630195MF665Z5J68"
+}
+
+variable "record_name" {
+  type    = string
+  default = "demo.clokesh.me"
+}
+
+variable "record_ttl" {
+  type    = number
+  default = 5
+}
+
+variable "record_type" {
+  type    = string
+  default = "A"
+}
