@@ -32,6 +32,7 @@ The code does the following:
 * Security group: database
 13. Creates an IAM policy named "WebAppS3" with appropriate permissions to allow EC2 instance to access the S3 bucket
 14. Creates an IAM role named "EC2-CSYE6225" and attaches the IAM policy "WebAppS3" to it. This role will be attached to the instance.
+15. Adds an A record to Route53 hosted zone so that the domain points to EC2 public IP address
 
 ## Prerequisites
 1. Install terraform on your local system

@@ -299,3 +299,11 @@ resource "aws_iam_instance_profile" "ec2-instance-profile" {
   name = var.ec2_instance_name
   role = aws_iam_role.EC2-CSYE6225.name
 }
+
+resource "aws_route53_record" "application" {
+  zone_id = var.zone_id
+  name    = var.record_name
+  type    = var.record_type
+  ttl     = var.record_ttl
+  records = aws_instance.application[*].public_ip
+}
