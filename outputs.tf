@@ -53,3 +53,7 @@ output "s3_bucket_name" {
 output "rds_instance_id" {
   value = aws_db_instance.mysql.id
 }
+
+output "application_host" {
+  value = aws_route53_record.application.fqdn
+}
