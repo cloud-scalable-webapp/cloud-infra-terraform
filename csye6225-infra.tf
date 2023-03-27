@@ -295,6 +295,15 @@ resource "aws_iam_role_policy_attachment" "EC2-CSYE6225" {
   policy_arn = aws_iam_policy.WebAppS3.arn
 }
 
+data "aws_iam_policy" "CloudWatch" {
+  arn = var.cloudwatch_agent_server_policy
+}
+
+resource "aws_iam_role_policy_attachment" "EC2-CSYE6225_CW" {
+  role       = aws_iam_role.EC2-CSYE6225.name
+  policy_arn = data.aws_iam_policy.CloudWatch.arn
+}
+
 resource "aws_iam_instance_profile" "ec2-instance-profile" {
   name = var.ec2_instance_name
   role = aws_iam_role.EC2-CSYE6225.name
@@ -306,4 +315,13 @@ resource "aws_route53_record" "application" {
   type    = var.record_type
   ttl     = var.record_ttl
   records = aws_instance.application[*].public_ip
+}
+
+resource "aws_cloudwatch_log_group" "csye6225" {
+  name = var.log_group_name
+}
+
+resource "aws_cloudwatch_log_stream" "webapp" {
+  name           = var.log_stream_name
+  log_group_name = aws_cloudwatch_log_group.csye6225.name
 }

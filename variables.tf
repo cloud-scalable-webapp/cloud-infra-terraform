@@ -350,3 +350,18 @@ variable "record_type" {
   type    = string
   default = "A"
 }
+
+variable "cloudwatch_agent_server_policy" {
+  type    = string
+  default = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
+variable "log_group_name" {
+  type    = string
+  default = "csye6225"
+}
+
+variable "log_stream_name" {
+  type    = string
+  default = "webapp"
+}
