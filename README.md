@@ -33,8 +33,8 @@ The code does the following:
 13. Creates an IAM policy named "WebAppS3" with appropriate permissions to allow EC2 instance to access the S3 bucket
 14. Creates an IAM role named "EC2-CSYE6225" and attaches the IAM policy "WebAppS3" to it. This role will be attached to the instance.
 15. Adds an A record to Route53 hosted zone so that the domain points to EC2 public IP address
-16. Creates a Cloudwatch log group named "csye6225"
-17. Creates a Cloudwatch log stream named "webapp" under the aforementioned log group to store the application logs
+16. Creates a CloudWatch log group named "csye6225"
+17. Creates a CloudWatch log stream named "webapp" under the aforementioned log group to store the application logs
 
 ## Prerequisites
 1. Install terraform on your local system
