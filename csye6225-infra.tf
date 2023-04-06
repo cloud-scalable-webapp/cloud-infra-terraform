@@ -73,21 +73,32 @@ resource "aws_route_table_association" "private_subnets" {
 
 resource "aws_security_group" "application" {
   name        = var.aws_security_group_name
-  description = "Allow TLS inbound traffic"
+  description = "Allow EC2 inbound traffic"
   vpc_id      = aws_vpc.main.id
   tags = {
     "Name" = "application"
   }
 }
 
-resource "aws_security_group_rule" "ingress" {
+resource "aws_security_group_rule" "webapp_ingress" {
+  type                     = "ingress"
+  count                    = length(var.webapp_ingress_rules)
+  from_port                = var.webapp_ingress_rules[count.index].from_port
+  to_port                  = var.webapp_ingress_rules[count.index].to_port
+  protocol                 = var.webapp_ingress_rules[count.index].protocol
+  source_security_group_id = aws_security_group.load_balancer.id
+  description              = var.webapp_ingress_rules[count.index].description
+  security_group_id        = aws_security_group.application.id
+}
+
+resource "aws_security_group_rule" "ssh_ingress" {
   type              = "ingress"
-  count             = length(var.application_ingress_rules)
-  from_port         = var.application_ingress_rules[count.index].from_port
-  to_port           = var.application_ingress_rules[count.index].to_port
-  protocol          = var.application_ingress_rules[count.index].protocol
-  cidr_blocks       = [var.application_ingress_rules[count.index].cidr_block]
-  description       = var.application_ingress_rules[count.index].description
+  count             = length(var.ssh_ingress_rules)
+  from_port         = var.ssh_ingress_rules[count.index].from_port
+  to_port           = var.ssh_ingress_rules[count.index].to_port
+  protocol          = var.ssh_ingress_rules[count.index].protocol
+  cidr_blocks       = [var.ssh_ingress_rules[count.index].cidr_blocks]
+  description       = var.ssh_ingress_rules[count.index].description
   security_group_id = aws_security_group.application.id
 }
 
@@ -102,35 +113,34 @@ resource "aws_security_group_rule" "egress" {
   security_group_id = aws_security_group.application.id
 }
 
-resource "aws_instance" "application" {
-  ami                         = var.ami_id
-  instance_type               = var.ec2_instance_type
-  associate_public_ip_address = var.associate_public_ip_address
-  vpc_security_group_ids      = [aws_security_group.application.id]
-  count                       = var.number_of_instances
-  subnet_id                   = element(aws_subnet.public_subnets[*].id, count.index)
-  iam_instance_profile        = aws_iam_instance_profile.ec2-instance-profile.name
-  root_block_device {
-    delete_on_termination = var.delete_on_termination
-    volume_size           = var.ebs_volume_size
-    volume_type           = var.ebs_volume_type
-  }
-  user_data = <<EOF
-		#! /bin/bash
-  echo DB_HOST=${aws_db_instance.mysql.address} >> /etc/environment
-  echo DB_USER=${var.aws_db_username} >> /etc/environment
-  echo DB_PASSWORD=${random_string.database_password.id} >> /etc/environment
-  echo DB_NAME=${var.aws_db_name} >> /etc/environment
-  echo NODE_PORT=${var.node_port} >> /etc/environment
-  echo DB_PORT=${var.db_port} >> /etc/environment
-  echo S3_BUCKET_NAME=${aws_s3_bucket.csyebucket.bucket} >> /etc/environment
-  sudo systemctl daemon-reload
-  sudo systemctl restart webapp
-	EOF
-  tags = {
-    Name = var.ec2_instance_name
-  }
-}
+# resource "aws_instance" "application" {
+#   ami                         = var.ami_id
+#   instance_type               = var.ec2_instance_type
+#   associate_public_ip_address = var.associate_public_ip_address
+#   vpc_security_group_ids      = [aws_security_group.application.id]
+#   subnet_id                   = aws_subnet.public_subnets[0].id
+#   iam_instance_profile        = aws_iam_instance_profile.ec2-instance-profile.name
+#   root_block_device {
+#     delete_on_termination = var.delete_on_termination
+#     volume_size           = var.ebs_volume_size
+#     volume_type           = var.ebs_volume_type
+#   }
+#   user_data = <<EOF
+# 		#! /bin/bash
+#   echo DB_HOST=${aws_db_instance.mysql.address} >> /etc/environment
+#   echo DB_USER=${var.aws_db_username} >> /etc/environment
+#   echo DB_PASSWORD=${random_string.database_password.id} >> /etc/environment
+#   echo DB_NAME=${var.aws_db_name} >> /etc/environment
+#   echo NODE_PORT=${var.node_port} >> /etc/environment
+#   echo DB_PORT=${var.db_port} >> /etc/environment
+#   echo S3_BUCKET_NAME=${aws_s3_bucket.csyebucket.bucket} >> /etc/environment
+#   sudo systemctl daemon-reload
+#   sudo systemctl restart webapp
+# 	EOF
+#   tags = {
+#     Name = var.ec2_instance_name
+#   }
+# }
 
 resource "aws_security_group" "database" {
   name        = var.aws_security_group_name_database
@@ -313,8 +323,11 @@ resource "aws_route53_record" "application" {
   zone_id = var.zone_id
   name    = var.record_name
   type    = var.record_type
-  ttl     = var.record_ttl
-  records = aws_instance.application[*].public_ip
+  alias {
+    name                   = aws_lb.csye.dns_name
+    zone_id                = aws_lb.csye.zone_id
+    evaluate_target_health = var.true
+  }
 }
 
 resource "aws_cloudwatch_log_group" "csye6225" {
@@ -324,4 +337,201 @@ resource "aws_cloudwatch_log_group" "csye6225" {
 resource "aws_cloudwatch_log_stream" "webapp" {
   name           = var.log_stream_name
   log_group_name = aws_cloudwatch_log_group.csye6225.name
+}
+
+resource "aws_security_group" "load_balancer" {
+  name        = var.aws_security_group_name_load_balancer
+  description = "Load Balancer Security Group"
+  vpc_id      = aws_vpc.main.id
+  tags = {
+    "Name" = "load balancer security group"
+  }
+}
+
+resource "aws_security_group_rule" "load_balancer_ingress" {
+  type              = "ingress"
+  count             = length(var.load_balancer_ingress_rules)
+  from_port         = var.load_balancer_ingress_rules[count.index].from_port
+  to_port           = var.load_balancer_ingress_rules[count.index].to_port
+  protocol          = var.load_balancer_ingress_rules[count.index].protocol
+  cidr_blocks       = [var.load_balancer_ingress_rules[count.index].cidr_block]
+  description       = var.load_balancer_ingress_rules[count.index].description
+  security_group_id = aws_security_group.load_balancer.id
+}
+
+resource "aws_security_group_rule" "load_balancer_egress" {
+  type              = "egress"
+  count             = length(var.application_egress_rules)
+  from_port         = var.application_egress_rules[count.index].from_port
+  to_port           = var.application_egress_rules[count.index].to_port
+  protocol          = var.application_egress_rules[count.index].protocol
+  cidr_blocks       = [var.application_egress_rules[count.index].cidr_block]
+  description       = var.application_egress_rules[count.index].description
+  security_group_id = aws_security_group.load_balancer.id
+}
+
+resource "aws_lb_target_group" "csye" {
+  name     = var.lb_tg_name
+  port     = var.lb_tg_port
+  protocol = var.lb_tg_protocol
+  vpc_id   = aws_vpc.main.id
+  health_check {
+    enabled           = var.true
+    healthy_threshold = var.lg_tg_health_threshold
+    interval          = var.lg_tg_health_interval
+    path              = "/healthz"
+    port              = var.lb_tg_port
+    timeout           = var.lg_tg_health_timeout
+  }
+}
+
+# resource "aws_lb_target_group_attachment" "csye" {
+#   target_group_arn = aws_lb_target_group.csye.arn
+#   target_id        = aws_instance.application.id
+#   port             = var.lb_tg_port
+# }
+
+resource "aws_lb" "csye" {
+  name               = var.lb_name
+  internal           = var.false
+  load_balancer_type = var.lb_type
+  security_groups    = [aws_security_group.load_balancer.id]
+  subnets            = aws_subnet.public_subnets[*].id
+}
+
+resource "aws_lb_listener" "csye" {
+  load_balancer_arn = aws_lb.csye.arn
+  port              = var.lb_listener_port
+  protocol          = var.lb_listener_protocol
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.csye.arn
+  }
+}
+
+locals {
+  user_data_script = <<EOF
+	#! /bin/bash
+  echo DB_HOST=${aws_db_instance.mysql.address} >> /etc/environment
+  echo DB_USER=${var.aws_db_username} >> /etc/environment
+  echo DB_PASSWORD=${random_string.database_password.id} >> /etc/environment
+  echo DB_NAME=${var.aws_db_name} >> /etc/environment
+  echo NODE_PORT=${var.node_port} >> /etc/environment
+  echo DB_PORT=${var.db_port} >> /etc/environment
+  echo S3_BUCKET_NAME=${aws_s3_bucket.csyebucket.bucket} >> /etc/environment
+  sudo systemctl daemon-reload
+  sudo systemctl restart webapp
+  EOF
+}
+
+resource "aws_launch_template" "asg_launch_config" {
+  name          = var.asg_launch_config_name
+  image_id      = var.ami_id
+  instance_type = var.ec2_instance_type
+  network_interfaces {
+    associate_public_ip_address = var.associate_public_ip_address
+    security_groups             = [aws_security_group.application.id]
+  }
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2-instance-profile.name
+  }
+  block_device_mappings {
+    device_name = var.device_name
+
+    ebs {
+      delete_on_termination = var.delete_on_termination
+      volume_size           = var.ebs_volume_size
+      volume_type           = var.ebs_volume_type
+      encrypted             = var.true
+      kms_key_id            = var.kms_key_id
+    }
+  }
+  key_name  = var.name
+  user_data = base64encode(local.user_data_script)
+  tags = {
+    Name = var.asg_launch_config_name
+  }
+}
+
+resource "aws_autoscaling_group" "csye" {
+  desired_capacity    = var.mindes_size
+  max_size            = var.max_size
+  min_size            = var.mindes_size
+  default_cooldown    = var.cooldown_period
+  vpc_zone_identifier = aws_subnet.public_subnets[*].id
+  launch_template {
+    id      = aws_launch_template.asg_launch_config.id
+    version = "$Latest"
+  }
+  target_group_arns = [aws_lb_target_group.csye.arn]
+  tag {
+    key                 = var.asg_app
+    value               = var.asg_webapp
+    propagate_at_launch = var.true
+  }
+  tag {
+    key                 = var.asg_name
+    value               = var.profile
+    propagate_at_launch = var.true
+  }
+}
+
+resource "aws_autoscaling_attachment" "asg_attachment_lb" {
+  autoscaling_group_name = aws_autoscaling_group.csye.id
+  lb_target_group_arn    = aws_lb_target_group.csye.arn
+}
+
+resource "aws_autoscaling_policy" "high_cpu" {
+  name                   = "HighCPU"
+  policy_type            = "SimpleScaling"
+  adjustment_type        = "ChangeInCapacity"
+  autoscaling_group_name = aws_autoscaling_group.csye.name
+  cooldown               = var.cooldown_period
+  scaling_adjustment     = var.one
+}
+
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "High CPU"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 5
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.csye.name
+  }
+
+  alarm_description = "This metric monitors EC2 cpu utilization"
+  alarm_actions     = [aws_autoscaling_policy.high_cpu.arn]
+}
+
+resource "aws_autoscaling_policy" "low_cpu" {
+  name                   = "LowCPU"
+  policy_type            = "SimpleScaling"
+  adjustment_type        = "ChangeInCapacity"
+  autoscaling_group_name = aws_autoscaling_group.csye.name
+  cooldown               = var.cooldown_period
+  scaling_adjustment     = var.minusone
+}
+
+resource "aws_cloudwatch_metric_alarm" "low_cpu" {
+  alarm_name          = "Low CPU"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 3
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.csye.name
+  }
+
+  alarm_description = "This metric monitors EC2 cpu utilization"
+  alarm_actions     = [aws_autoscaling_policy.low_cpu.arn]
 }
