@@ -11,9 +11,8 @@ variable "region" {
 }
 
 variable "vpc_name" {
-  type        = string
-  default     = "csye6225"
-  description = "Name of the VPC"
+  type    = string
+  default = "csye6225"
 }
 
 variable "vpccidr" {
@@ -67,12 +66,30 @@ variable "ebs_volume_type" {
   description = "EBS Volume Type"
 }
 
-variable "application_ingress_rules" {
+variable "webapp_ingress_rules" {
   type = list(object({
     from_port   = number
     to_port     = number
     protocol    = string
-    cidr_block  = string
+    description = string
+  }))
+
+  default = [
+    {
+      from_port   = 8000
+      to_port     = 8000
+      protocol    = "tcp"
+      description = "Webapp"
+    }
+  ]
+}
+
+variable "ssh_ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = string
     description = string
   }))
 
@@ -81,30 +98,9 @@ variable "application_ingress_rules" {
       from_port   = 22
       to_port     = 22
       protocol    = "tcp"
-      cidr_block  = "0.0.0.0/0"
+      cidr_blocks = "0.0.0.0/0"
       description = "SSH"
-    },
-    {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_block  = "0.0.0.0/0"
-      description = "HTTP"
-    },
-    {
-      from_port   = 443
-      to_port     = 443
-      protocol    = "tcp"
-      cidr_block  = "0.0.0.0/0"
-      description = "HTTPS"
-    },
-    {
-      from_port   = 8000
-      to_port     = 8000
-      protocol    = "tcp"
-      cidr_block  = "0.0.0.0/0"
-      description = "HTTPS"
-    },
+    }
   ]
 }
 
@@ -136,11 +132,6 @@ variable "delete_on_termination" {
 variable "associate_public_ip_address" {
   type    = string
   default = true
-}
-
-variable "number_of_instances" {
-  type    = number
-  default = 1
 }
 
 variable "number_of_db_instances" {
@@ -341,11 +332,6 @@ variable "record_name" {
   default = "demo.clokesh.me"
 }
 
-variable "record_ttl" {
-  type    = number
-  default = 5
-}
-
 variable "record_type" {
   type    = string
   default = "A"
@@ -364,4 +350,146 @@ variable "log_group_name" {
 variable "log_stream_name" {
   type    = string
   default = "webapp"
+}
+
+variable "aws_security_group_name_load_balancer" {
+  type    = string
+  default = "load balancer"
+}
+
+variable "load_balancer_ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_block  = string
+    description = string
+  }))
+
+  default = [
+    {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
+      description = "HTTP"
+    },
+    {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_block  = "0.0.0.0/0"
+      description = "HTTPS"
+    }
+  ]
+}
+
+variable "lb_tg_protocol" {
+  type    = string
+  default = "HTTP"
+}
+
+variable "lb_tg_name" {
+  type    = string
+  default = "csye6225-lb-tg"
+}
+
+variable "lb_tg_port" {
+  type    = number
+  default = 8000
+}
+
+variable "lg_tg_health_threshold" {
+  type    = number
+  default = 2
+}
+
+variable "lg_tg_health_interval" {
+  type    = number
+  default = 60
+}
+
+variable "lg_tg_health_timeout" {
+  type    = number
+  default = 30
+}
+
+variable "lb_name" {
+  type    = string
+  default = "csye6225"
+}
+
+variable "lb_type" {
+  type    = string
+  default = "application"
+}
+
+variable "lb_listener_port" {
+  type    = number
+  default = 80
+}
+
+variable "lb_listener_protocol" {
+  type    = string
+  default = "HTTP"
+}
+
+variable "asg_launch_config_name" {
+  type    = string
+  default = "asg_launch_config"
+}
+
+variable "device_name" {
+  type    = string
+  default = "/dev/xvda"
+}
+
+variable "max_size" {
+  type    = number
+  default = 3
+}
+
+variable "mindes_size" {
+  type    = number
+  default = 1
+}
+
+variable "cooldown_period" {
+  type    = number
+  default = 60
+}
+
+variable "asg_app" {
+  type    = string
+  default = "Application"
+}
+
+variable "asg_webapp" {
+  type    = string
+  default = "Webapp"
+}
+
+variable "asg_name" {
+  type    = string
+  default = "Name"
+}
+
+variable "name" {
+  type    = string
+  default = "csye"
+}
+
+variable "one" {
+  type    = number
+  default = 1
+}
+
+variable "minusone" {
+  type    = number
+  default = -1
+}
+
+variable "kms_key_id" {
+  type    = string
+  default = "arn:aws:kms:us-east-1:209538387374:key/ce3cb311-1aa0-4d08-9243-dd5844c5d1f9"
 }
