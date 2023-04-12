@@ -177,6 +177,11 @@ resource "aws_db_subnet_group" "csye6225" {
   }
 }
 
+resource "aws_kms_key" "rds" {
+  description             = "RDS KMS CMK"
+  deletion_window_in_days = 30
+}
+
 resource "aws_db_instance" "mysql" {
   engine                 = var.aws_db_engine
   engine_version         = var.aws_db_engine_version
@@ -193,6 +198,8 @@ resource "aws_db_instance" "mysql" {
   allocated_storage      = var.db_allocated_storage
   max_allocated_storage  = var.max_db_allocated_storage
   skip_final_snapshot    = var.true
+  storage_encrypted      = var.true
+  kms_key_id             = aws_kms_key.rds.arn
 
   tags = {
     Name = var.aws_db_instance_name
@@ -379,7 +386,7 @@ resource "aws_lb_target_group" "csye" {
     enabled           = var.true
     healthy_threshold = var.lg_tg_health_threshold
     interval          = var.lg_tg_health_interval
-    path              = "/healthz"
+    path              = "/check"
     port              = var.lb_tg_port
     timeout           = var.lg_tg_health_timeout
   }
@@ -403,7 +410,7 @@ resource "aws_lb_listener" "csye" {
   load_balancer_arn = aws_lb.csye.arn
   port              = var.lb_listener_port
   protocol          = var.lb_listener_protocol
-
+  certificate_arn   = var.certificate_arn
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.csye.arn
@@ -425,6 +432,68 @@ locals {
   EOF
 }
 
+resource "aws_kms_key" "ebs" {
+  description             = "EBS KMS CMK"
+  deletion_window_in_days = 30
+}
+
+resource "aws_kms_key_policy" "ebs" {
+  key_id = aws_kms_key.ebs.id
+  policy = jsonencode({
+    Id = "ebs-key"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions",
+        Effect = "Allow",
+        Principal = {
+          "AWS" : "arn:aws:iam::209538387374:root"
+        },
+        Action   = "kms:*",
+        Resource = "*"
+      },
+      {
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Effect = "Allow"
+        Principal = {
+          AWS = [
+            "arn:aws:iam::209538387374:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+          ]
+        }
+
+        Resource = "*"
+        Sid      = "Allow use of the key"
+      },
+      {
+        Sid    = "Allow attachment of persistent resources",
+        Effect = "Allow",
+        Principal = {
+          AWS = [
+            "arn:aws:iam::209538387374:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+          ]
+        },
+        Action = [
+          "kms:CreateGrant",
+          "kms:ListGrants",
+          "kms:RevokeGrant"
+        ],
+        Resource = "*",
+        Condition = {
+          Bool = {
+            "kms:GrantIsForAWSResource" : "true"
+          }
+        }
+      }
+    ]
+    Version = "2012-10-17"
+  })
+}
+
 resource "aws_launch_template" "asg_launch_config" {
   name          = var.asg_launch_config_name
   image_id      = var.ami_id
@@ -444,7 +513,7 @@ resource "aws_launch_template" "asg_launch_config" {
       volume_size           = var.ebs_volume_size
       volume_type           = var.ebs_volume_type
       encrypted             = var.true
-      kms_key_id            = var.kms_key_id
+      kms_key_id            = aws_kms_key.ebs.arn
     }
   }
   key_name  = var.name
