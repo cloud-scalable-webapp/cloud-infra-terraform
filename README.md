@@ -8,7 +8,7 @@ The code does the following:
 4. Creates a public route table and attaches all public subnets created to the route table
 5. Creates a private route table and attaches all private subnets created to the route table
 6. Creates a public route in the public route table created above with the destination CIDR block 0.0.0.0/0 and the internet gateway created above as the target
-7. Creates an application security group for EC2 with name "application" and ingress rules to allow ingress traffic on port 22, 443, 80 and 8000 globally
+7. Creates an application security group for EC2 with name "application" and ingress rules to allow ingress traffic on port 22 and 8000 from the load balancer
 8. Creates an EC2 instance in the newly created VPC above with the following specifications:
 * Security Group: application
 * Instance Type: t2.micro
@@ -35,6 +35,13 @@ The code does the following:
 15. Adds an A record to Route53 hosted zone so that the domain points to EC2 public IP address
 16. Creates a CloudWatch log group named "csye6225"
 17. Creates a CloudWatch log stream named "webapp" under the aforementioned log group to store the application logs
+18. Creates a load balancer security group for the load balancer and ingress rules to allow ingress traffic on port 443 globally
+19. Creates a load balancer to distribute traffic across instances created by the autoscaling group
+20. Creates a launch template and an auto scaling group with minimum, desired and maximum EC2 instaces as 1,1 and 3 accordingly.
+21. Encrypts EBS volumes and RDS instances using AWS CMK
+
+* Command to import the SSL certificate to AWS ACM through CLI:
+aws acm --profile=demo import-certificate --debug --certificate fileb:///Users/admin/Downloads/SSL/demo_clokesh_me.crt --certificate-chain fileb:///Users/admin/Downloads/SSL/demo_clokesh_me.ca-bundle --private-key fileb:///Users/admin/Downloads/SSL/demo.clokesh.me.key
 
 ## Prerequisites
 1. Install terraform on your local system

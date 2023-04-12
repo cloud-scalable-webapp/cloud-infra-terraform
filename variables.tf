@@ -342,6 +342,16 @@ variable "cloudwatch_agent_server_policy" {
   default = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
+# variable "asg_policy_arn" {
+#   type    = string
+#   default = "arn:aws:iam::aws:policy/aws-service-role/AutoScalingServiceRolePolicy"
+# }
+
+# variable "rds_policy_arn" {
+#   type    = string
+#   default = "arn:aws:iam::aws:policy/aws-service-role/AmazonRDSServiceRolePolicy"
+# }
+
 variable "log_group_name" {
   type    = string
   default = "csye6225"
@@ -367,13 +377,6 @@ variable "load_balancer_ingress_rules" {
   }))
 
   default = [
-    {
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_block  = "0.0.0.0/0"
-      description = "HTTP"
-    },
     {
       from_port   = 443
       to_port     = 443
@@ -426,12 +429,12 @@ variable "lb_type" {
 
 variable "lb_listener_port" {
   type    = number
-  default = 80
+  default = 443
 }
 
 variable "lb_listener_protocol" {
   type    = string
-  default = "HTTP"
+  default = "HTTPS"
 }
 
 variable "asg_launch_config_name" {
@@ -489,7 +492,17 @@ variable "minusone" {
   default = -1
 }
 
-variable "kms_key_id" {
+variable "kms_key_id_ebs" {
   type    = string
-  default = "arn:aws:kms:us-east-1:209538387374:key/ce3cb311-1aa0-4d08-9243-dd5844c5d1f9"
+  default = "arn:aws:kms:us-east-1:209538387374:key/fecd44a2-45cb-49b0-90ea-63a94780f052"
+}
+
+variable "kms_key_id_rds" {
+  type    = string
+  default = "arn:aws:kms:us-east-1:209538387374:key/741556ff-fd59-4f05-be21-4af634524bc1"
+}
+
+variable "certificate_arn" {
+  type    = string
+  default = "arn:aws:acm:us-east-1:209538387374:certificate/cf6f0f2f-935c-4763-9aa2-8924134c2510"
 }
