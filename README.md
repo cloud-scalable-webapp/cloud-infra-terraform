@@ -1,4 +1,4 @@
-# Infrastructure
+# CloudApp Infrastructure
 
 ## AWS Infrastructure Setup
 The code does the following:
